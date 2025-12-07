@@ -30,6 +30,7 @@ int main(void) {
 	int i = 0;
 	int j = i + 1;
 	int switched = 0;
+	char *algName = "Selection sort.";
     while (!WindowShouldClose()) {
 		// check input
 		Vector2 pointers = {i, j};
@@ -56,6 +57,7 @@ int main(void) {
 
 		BeginDrawing();
 			ClearBackground(BLACK);
+			DrawText(algName, 30, 30, fontSize, WHITE);
 			drawArray(arr, arraySize, switched, pointers);
 			drawPointers(i, j);
 		EndDrawing();
