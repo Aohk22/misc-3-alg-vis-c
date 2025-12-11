@@ -1,29 +1,34 @@
 #include <raylib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "elements.c"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 450
+#define SCREEN_WIDTH 850
+#define SCREEN_HEIGHT 470
+#define FONT_SIZE 26
 
-void initStuff();
-void drawArray(int *arr, int size, uint8_t hightlight, Vector2 pointers);
-void drawPointers(uint8_t i, uint8_t j);
-void drawSwitchBridge(uint8_t i, uint8_t j);
 
-// array component attributes
-// 	element container
-const int rectWidth = 80;
-const int rectHeight = 60;
-//	element value data
-const int fontSize = 26;
-//	position
-int rectX = (int)(SCREEN_WIDTH * 1/6.) - 10;
-int rectY = (int)(SCREEN_HEIGHT/2. - rectHeight/2.);
+void drawArray(ArrayElm *arrElm, uint8_t highlight, Vector2 pointers, int padding);
+void drawPointers(ArrayElm *arrElm, uint8_t i, uint8_t j, int padding);
+
+void initStuff() {
+	SetTargetFPS(60);
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "vizzz");
+}
 
 int main(void) {
 	int arr[6] = {1, 2, 13, 5, 16, 10};
-	// int arr[9] = {1, 20, 2, 5, 16, 8, 0, 1, 7};
-	int arraySize = sizeof(arr)/sizeof(arr[0]);
+	const int arraySize = sizeof(arr)/sizeof(arr[0]);
+	const int screenMiddleX = SCREEN_WIDTH*1/2.;
+	const int screenMiddleY = SCREEN_HEIGHT*1/2.;
+	const int boxWidth = 50;
+	const int boxHeight = 50;
+	ArrayElm *arrElm = newArrayElement(
+			arr, arraySize,
+			(Vector2){boxWidth, boxHeight}, 
+			(Vector2){screenMiddleX - (boxWidth/2.) * arraySize, screenMiddleY},
+			FONT_SIZE
+	);
 
 	initStuff();
 
@@ -31,6 +36,10 @@ int main(void) {
 	int j = i + 1;
 	int switched = 0;
 	char *algName = "Selection sort.";
+	const Vector2 algNamePosition = {
+		.x = (SCREEN_WIDTH/2.)-(6*FONT_SIZE), // 6-7 is about half the text len
+		.y = SCREEN_HEIGHT*1/6.
+	};
     while (!WindowShouldClose()) {
 		// check input
 		Vector2 pointers = {i, j};
@@ -55,11 +64,12 @@ int main(void) {
 			}
 		}
 
+		// draw stuff
 		BeginDrawing();
 			ClearBackground(BLACK);
-			DrawText(algName, 30, 30, fontSize, WHITE);
-			drawArray(arr, arraySize, switched, pointers);
-			drawPointers(i, j);
+			DrawText(algName, algNamePosition.x, algNamePosition.y, FONT_SIZE, WHITE);
+			drawArray(arrElm, switched, pointers, 5);
+			drawPointers(arrElm, i, j, 5);
 		EndDrawing();
     }
 
@@ -68,42 +78,18 @@ int main(void) {
     return 0;
 }
 
-void initStuff() {
-	SetTargetFPS(60);
-    InitWindow(800, 450, "vizzz");
-}
-
-void drawArray(int *arr, int size, uint8_t highlight, Vector2 pointers) {
-	for (int i=0; i<size; i++) {
-		int elementXMove = (rectWidth + 10) * i;
-		int elementTextX = rectX + ((rectWidth - fontSize) / 2.) + 3;
-		int elementTextY = rectY + ((rectHeight - fontSize) / 2.) + 3;
-		char elementText[10];
-
-		sprintf(elementText, "%d", arr[i]);
-
-		DrawRectangle(rectX + elementXMove, rectY, rectWidth, rectHeight, BLUE);
-		DrawText(elementText, elementTextX + elementXMove, elementTextY, fontSize, GREEN);
-		if (highlight) {
-			if (i == pointers.x || i == pointers.y) {
-				DrawText(elementText, elementTextX + elementXMove, elementTextY, fontSize, RED);
-			}
-		}
-	}
-}
-
-void drawPointers(uint8_t i, uint8_t j) {
-	int elementIMove = (rectWidth + 10) * i;
-	int elementJMove = (rectWidth + 10) * j;
-	int elementIX = rectX + ((rectWidth - fontSize) / 2.) + 3;
-	int elementJX = rectX + ((rectWidth - fontSize) / 2.) + 3;
-	int elementY = rectY - rectHeight;
+void drawPointers(ArrayElm *arrElm, uint8_t i, uint8_t j, int padding) {
 	char msgI[10];
 	char msgJ[10];
 
 	sprintf(msgI, "i=%d", i);
 	sprintf(msgJ, "j=%d", j);
 
-	DrawText(msgI, elementIX + elementIMove, elementY, fontSize, YELLOW);
-	DrawText(msgJ, elementJX + elementJMove, elementY, fontSize, YELLOW);
+	int posY = arrElm->base.y - arrElm->rectSize.y;
+	int baseX = arrElm->base.x + ((arrElm->rectSize.x - 1*arrElm->textSize) / 2.);
+	int iPosX = (arrElm->rectSize.x + padding) * i + baseX;
+	int jPosX = (arrElm->rectSize.x + padding) * j + baseX;
+
+	DrawText(msgI, iPosX, posY, FONT_SIZE, YELLOW);
+	DrawText(msgJ, jPosX, posY, FONT_SIZE, YELLOW);
 }
